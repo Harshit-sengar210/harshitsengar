@@ -2,13 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
 // GET a single contact message by ID
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  _request: NextRequest,
+  { params }: Params
 ) {
   try {
-    const id = context.params.id;
+    const id = params.id;
 
     if (!db) {
       return NextResponse.json({ 
@@ -43,10 +49,10 @@ export async function GET(
 // UPDATE a contact message (mark as read/unread)
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: Params
 ) {
   try {
-    const id = context.params.id;
+    const id = params.id;
 
     if (!db) {
       return NextResponse.json({ 
@@ -86,11 +92,11 @@ export async function PUT(
 
 // DELETE a contact message
 export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
+  _request: NextRequest,
+  { params }: Params
 ) {
   try {
-    const id = context.params.id;
+    const id = params.id;
 
     if (!db) {
       return NextResponse.json({ 
