@@ -1,15 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "buildCommand": "npm install tailwindcss@latest postcss@latest autoprefixer@latest --no-save && npm install --legacy-peer-deps && npm run build",
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": "nextjs",
-  "routes": [
-    { "src": "/", "dest": "/" },
-    { "src": "/about", "dest": "/about" },
-    { "src": "/projects", "dest": "/projects" },
-    { "src": "/contact", "dest": "/contact" },
-    { "src": "/services", "dest": "/services" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+  "framework": "nextjs"
 } 
