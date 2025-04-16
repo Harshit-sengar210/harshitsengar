@@ -1,14 +1,61 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Container from "@/components/layout/Container";
 import { fadeUpVariant, staggerContainerVariant } from "@/lib/animations";
 import { gsap } from "gsap";
-import Typewriter from "typewriter-effect";
 import Link from "next/link";
 import { ArrowDownCircle, Github, Linkedin, Twitter } from "lucide-react";
 import Image from "next/image";
+
+// Simple typewriter effect component
+interface SimpleTypewriterProps {
+  strings: string[];
+  loop?: boolean;
+}
+
+const SimpleTypewriter = ({ strings, loop = true }: SimpleTypewriterProps) => {
+  const [currentStringIndex, setCurrentStringIndex] = useState(0);
+  const [currentText, setCurrentText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  useEffect(() => {
+    const typeSpeed = 100;
+    const deleteSpeed = 50;
+    const delayAfterType = 2000;
+    
+    const handleTyping = () => {
+      const currentString = strings[currentStringIndex];
+      
+      if (isDeleting) {
+        setCurrentText(prev => prev.substring(0, prev.length - 1));
+        if (currentText === '') {
+          setIsDeleting(false);
+          setCurrentStringIndex((currentStringIndex + 1) % strings.length);
+        }
+      } else {
+        setCurrentText(currentString.substring(0, currentText.length + 1));
+        if (currentText === currentString) {
+          // Delay before deleting
+          setTimeout(() => {
+            setIsDeleting(true);
+          }, delayAfterType);
+          return;
+        }
+      }
+    };
+    
+    const timer = setTimeout(
+      handleTyping, 
+      isDeleting ? deleteSpeed : typeSpeed
+    );
+    
+    return () => clearTimeout(timer);
+  }, [currentText, currentStringIndex, isDeleting, strings, loop]);
+  
+  return <span>{currentText}<span className="animate-pulse">|</span></span>;
+};
 
 const Hero = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -87,7 +134,7 @@ const Hero = () => {
                 custom={0}
                 className="text-sm md:text-base font-medium text-purple-500 mb-4"
               >
-                Hello! I am Yogesh 👋
+                Hello! I am Harshit 👋
               </motion.h2>
 
               <motion.h1
@@ -106,17 +153,14 @@ const Hero = () => {
               >
                 I specialize in creating{" "}
                 <span className="text-white">
-                  <Typewriter
-                    options={{
-                      strings: [
-                        "modern web applications",
-                        "responsive designs",
-                        "interactive experiences",
-                        "creative animations",
-                      ],
-                      autoStart: true,
-                      loop: true,
-                    }}
+                  <SimpleTypewriter
+                    strings={[
+                      "modern web applications",
+                      "responsive designs",
+                      "interactive experiences",
+                      "creative animations",
+                    ]}
+                    loop={true}
                   />
                 </span>
               </motion.div>
