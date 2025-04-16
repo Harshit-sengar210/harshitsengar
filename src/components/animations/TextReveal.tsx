@@ -1,132 +1,95 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { motion, useInView, Variants } from "framer-motion";
-import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { useState, useEffect, useRef, ReactNode } from "react";
+import { motion, useInView } from "framer-motion";
+import { charRevealVariant } from "@/lib/animations";
 
 interface TextRevealProps {
   text: string;
-  className?: string;
   element?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span";
+  className?: string;
   direction?: "up" | "down" | "left" | "right";
   staggerChildren?: number;
   delay?: number;
-  once?: boolean;
   threshold?: number;
+  once?: boolean;
+  children?: ReactNode;
 }
 
-const TextReveal: React.FC<TextRevealProps> = ({
+const TextReveal = ({
   text,
-  className = "",
   element = "p",
+  className = "",
   direction = "up",
   staggerChildren = 0.03,
   delay = 0,
-  once = true,
-  threshold = 0.2,
-}) => {
-  const [ref, isInView] = useScrollAnimation<HTMLDivElement>({
-    threshold,
-    once,
-  });
+  threshold = 0.3,
+  once = false,
+  children,
+}: TextRevealProps) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once, amount: threshold });
+  const [splittedText, setSplittedText] = useState<string[]>([]);
 
-  // Split text into words
-  const words = text.split(" ");
-
-  // Get the appropriate animation variant based on direction
-  const getAnimationVariant = (): Variants => {
-    switch (direction) {
-      case "up":
-        return {
-          hidden: { opacity: 0, y: 20 },
-          visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-              opacity: { duration: 0.5 },
-              y: { type: "spring", stiffness: 100, damping: 12 },
-              delay: i * staggerChildren + delay,
-            },
-          }),
-        };
-      case "down":
-        return {
-          hidden: { opacity: 0, y: -20 },
-          visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-              opacity: { duration: 0.5 },
-              y: { type: "spring", stiffness: 100, damping: 12 },
-              delay: i * staggerChildren + delay,
-            },
-          }),
-        };
-      case "left":
-        return {
-          hidden: { opacity: 0, x: 20 },
-          visible: (i: number) => ({
-            opacity: 1,
-            x: 0,
-            transition: {
-              opacity: { duration: 0.5 },
-              x: { type: "spring", stiffness: 100, damping: 12 },
-              delay: i * staggerChildren + delay,
-            },
-          }),
-        };
-      case "right":
-        return {
-          hidden: { opacity: 0, x: -20 },
-          visible: (i: number) => ({
-            opacity: 1,
-            x: 0,
-            transition: {
-              opacity: { duration: 0.5 },
-              x: { type: "spring", stiffness: 100, damping: 12 },
-              delay: i * staggerChildren + delay,
-            },
-          }),
-        };
-      default:
-        return {
-          hidden: { opacity: 0, y: 20 },
-          visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-              opacity: { duration: 0.5 },
-              y: { type: "spring", stiffness: 100, damping: 12 },
-              delay: i * staggerChildren + delay,
-            },
-          }),
-        };
+  useEffect(() => {
+    // Split text into words
+    if (text) {
+      setSplittedText(text.split(" "));
     }
+  }, [text]);
+
+  // Motion variants based on direction
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren,
+        delayChildren: delay,
+      },
+    },
   };
 
-  // Create the component based on the desired element
-  const Element = motion[element];
+  const wordVariants = {
+    hidden: {
+      opacity: 0,
+      y: direction === "up" ? 20 : direction === "down" ? -20 : 0,
+      x: direction === "left" ? 20 : direction === "right" ? -20 : 0,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      x: 0,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
 
-  // Animation variants
-  const variants = getAnimationVariant();
+  const Tag = element;
 
   return (
-    <div ref={ref} className={className}>
-      {words.map((word, i) => (
-        <span key={i} className="inline-block" style={{ whiteSpace: "pre" }}>
-          <Element
-            custom={i}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            variants={variants}
-            className="inline-block"
-          >
-            {word}
-            {i < words.length - 1 ? " " : ""}
-          </Element>
-        </span>
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={containerVariants}
+      className={className}
+    >
+      {splittedText.map((word, index) => (
+        <motion.span
+          key={`${word}-${index}`}
+          variants={wordVariants}
+          className="inline-block"
+          style={{ marginRight: "0.25em" }}
+        >
+          {word}
+        </motion.span>
       ))}
-    </div>
+      {children}
+    </motion.div>
   );
 };
 
